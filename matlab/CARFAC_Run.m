@@ -16,7 +16,7 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-function [CF, decim_naps, naps, BM, ohc, agc] = CARFAC_Run ...
+function [CF, decim_naps, naps, BM, ohc, agc, agc_state] = CARFAC_Run ...
   (CF, input_waves, AGC_plot_fig_num, open_loop)
 % function [CF, decim_naps, naps, BM, ohc, agc] = CARFAC_Run ...
 %   (CF, input_waves, AGC_plot_fig_num)
@@ -72,7 +72,6 @@ if n_ears ~= CF.n_ears
   error('bad number of input_waves channels passed to CARFAC_Run')
 end
 
-
 naps = zeros(n_samp, n_ch, n_ears);
 
 seglen = 441;  % anything should work; this is 20 ms at default fs
@@ -90,6 +89,12 @@ if nargout > 2
   naps = zeros(n_samp, CF.n_ch, CF.n_ears);
 else
   naps = [];
+end
+
+if nargout > 6
+  agc_state = zeros(n_segs, n_ch, n_ears, 4);
+else
+  agc_state = [];
 end
 
 for seg_num = 1:n_segs
@@ -135,6 +140,15 @@ for seg_num = 1:n_segs
     end
   end
   
+  if ~isempty(agc_state)
+    for ear = 1:n_ears
+      for stage = 1:4
+        stage_response = 2^(stage-1) * CF.ears(ear).AGC_state(stage).AGC_memory;
+        agc_state(seg_num, :, ear, stage) = stage_response;
+      end
+    end
+  end
+  
   if ~isempty(decim_naps)
     for ear = 1:n_ears
       decim_naps(seg_num, :, ear) = CF.ears(ear).IHC_state.ihc_accum / seglen;
@@ -143,18 +157,19 @@ for seg_num = 1:n_segs
   end
   
   if AGC_plot_fig_num
-    figure(AGC_plot_fig_num); hold off; clf
-    maxmax = 0;
-    for ear = 1:n_ears
-      hold on
-      for stage = 1:4;
-        stage_response = 2^(stage-1) * CF.ears(ear).AGC_state(stage).AGC_memory;
-        plot(stage_response);
-        maxmax = max(maxmax, max(stage_response));
-      end
-    end
-    axis([0, CF.n_ch+1, 0.0, maxmax * 1.01 + 0.002]);
-    drawnow
+%     figure(AGC_plot_fig_num); hold off; clf
+%     maxmax = 0;
+%     for ear = 1:n_ears
+%       hold on
+%       for stage = 1:4
+%         stage_response = 2^(stage-1) * CF.ears(ear).AGC_state(stage).AGC_memory;
+%         agc_state(seg_num, ear, stage, :) = stage_response;
+%         plot(stage_response);
+%         maxmax = max(maxmax, max(stage_response));
+%       end
+%     end
+%     axis([0, CF.n_ch+1, 0.0, maxmax * 1.01 + 0.002]);
+%     drawnow
   end
 
 end
