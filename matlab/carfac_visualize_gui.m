@@ -57,7 +57,7 @@ hcurrent_stage = uicontrol('Parent',f,'Style','slider','Position',[300,20,100,10
        
 ha = axes('Units','pixels','Position',[50,60,200,185]);
 
-align([hreaddata,hnaps,hdecimnaps,hagcstate,hpopup,hcurrent_ear,hcurrent_stage, hbm, hogc, hagc],'Center','None');
+align([hreaddata,hnaps,hdecimnaps,hagcstate,hpopup,hcurrent_ear_text,hcurrent_ear,hcurrent_stage_text,hcurrent_stage, hbm, hogc, hagc],'Center','None');
 
 % Initialize the UI.
 % Change units to normalized so components resize automatically.
@@ -81,7 +81,7 @@ hagc.Units = 'normalized';
 
 itd_offset = 22;  % about 1 ms
 
-[signal, fs] = audioread('/Data/Dropbox/Datasets/audio_samples/timit_sample_LDC93S1.wav');
+[signal, fs] = audioread('../test_data/binaural_test.wav');
 
 test_signal = [signal((itd_offset+1):end), ...
                signal(1:(end-itd_offset))] / 10;
